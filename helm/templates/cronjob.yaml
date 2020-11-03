@@ -1,0 +1,52 @@
+
+{{- range $monitor := .Values.monitors }}
+---
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: "{{ lower $monitor.name }}"
+spec:
+  schedule: "{{ $monitor.schedule }}"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: "{{ lower $monitor.name }}"
+              image: monitoring
+              args:
+                - python
+                - monitors.py
+                - run
+                - -m
+                - "{{ $monitor.name }}"
+                - -r
+                - "{{ $monitor.resource_name }}"
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    configMapKeyRef:
+                      name: aws-access
+                      key: aws.access.key.id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    configMapKeyRef:
+                      name: aws-access
+                      key: aws.secret.access.key
+              volumeMounts:
+                - name: logs
+                  mountPath: /logs
+          restartPolicy: OnFailure
+          volumes:
+            - name: logs
+              hostPath:
+                path: /var/log/pods
+{{- end }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: aws-access
+data:
+  aws.access.key.id: {{.Values.aws_access_key_id}}
+  aws.secret.access.key: {{.Values.aws_secret_access_key}}

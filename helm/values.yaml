@@ -1,0 +1,10 @@
+monitors:
+  - name: "S3ListAll"
+    resource_name: "tech-interview-2515"
+    schedule: "*/1 * * * *"
+  - name: "S3E2EMonitoring"
+    resource_name: "tech-interview-2515"
+    schedule: "*/1 * * * *"
+version: "latest"
+
+
